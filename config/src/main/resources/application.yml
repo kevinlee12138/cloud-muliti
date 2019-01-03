@@ -8,7 +8,7 @@ spring:
         git:
           uri: https://github.com/kevinlee12138/config-repo.git
           username: kevin12138az@163.com
-          password: 3721.lei
+          password: ********
           basedir: D:\workspace\idea\springcloud\cloud-muliti\config\basedir
 eureka:
   client:
