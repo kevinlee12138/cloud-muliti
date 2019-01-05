@@ -49,13 +49,13 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void decreaseStock(List<DecreaseStockInput> decreaseStockInputs) {
         for (DecreaseStockInput decreaseStockInput:decreaseStockInputs){
-            Optional<ProductInfo> productInfoOptional =  productInfoRepository.findById(decreaseStockInput.getProductId());
+            ProductInfo productInfo =  productInfoRepository.findOne(decreaseStockInput.getProductId());
             //商品不存在
-            if (!productInfoOptional.isPresent()){
-                throw new ProductException(ResultEnum.PRODUCT_NOT_EXIST);
-            }
+//            if (!productInfoOptional.isPresent()){
+//                throw new ProductException(ResultEnum.PRODUCT_NOT_EXIST);
+//            }
 
-            ProductInfo productInfo = productInfoOptional.get();
+           // ProductInfo productInfo = productInfoOptional.get();
             //判断库存够不够
             Integer result = productInfo.getProductStock() - decreaseStockInput.getProductQuantity();
             if (result < 0){
