@@ -1,8 +1,10 @@
 package com.kevin.order;
 
+import com.kevin.order.message.StreamClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -15,6 +17,10 @@ public class ServerApplicationTests {
 
     @Autowired
     private AmqpTemplate amqpTemplate;
+
+    @Autowired
+    StreamClient streamClient;
+
     @Test
     public void contextLoads() {
         amqpTemplate.convertAndSend("myQueue","now:"+new Date());
@@ -30,5 +36,10 @@ public class ServerApplicationTests {
         amqpTemplate.convertAndSend("myOrder","food","food:"+new Date());
     }
 
+    @Test
+    public void testSendStreamMsg(){
+        String message = "now:" +new Date();
+        streamClient.output().send(MessageBuilder.withPayload(message).build());
+    }
 }
 
