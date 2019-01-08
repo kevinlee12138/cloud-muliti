@@ -9,11 +9,15 @@ import com.kevin.product.enums.ResultEnum;
 import com.kevin.product.exception.ProductException;
 import com.kevin.product.repository.ProductInfoRepository;
 import com.kevin.product.service.ProductService;
+import com.kevin.product.utils.JsonUtil;
+import com.rabbitmq.tools.json.JSONUtil;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,6 +32,8 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductInfoRepository productInfoRepository;
 
+    @Autowired
+    AmqpTemplate amqpTemplate;
 
     @Override
     public List<ProductInfo> findUpAll() {
@@ -46,8 +52,19 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional
     public void decreaseStock(List<DecreaseStockInput> decreaseStockInputs) {
+        List<ProductInfo> productInfoList = decreaseStockProcess(decreaseStockInputs);
+        List<ProductInfoOutput> productInfoOutputs = productInfoList.stream()
+                .map(e -> {
+                    ProductInfoOutput output  = new ProductInfoOutput();
+                    BeanUtils.copyProperties(e,output);
+                    return output;
+                }).collect(Collectors.toList());
+        amqpTemplate.convertAndSend("productInfo","decreaseProduct", JsonUtil.toJson(productInfoOutputs));
+    }
+    @Transactional
+    public List<ProductInfo> decreaseStockProcess(List<DecreaseStockInput> decreaseStockInputs) {
+        List<ProductInfo> productInfoList = new ArrayList<>();
         for (DecreaseStockInput decreaseStockInput:decreaseStockInputs){
             ProductInfo productInfo =  productInfoRepository.findOne(decreaseStockInput.getProductId());
             //商品不存在
@@ -55,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
 //                throw new ProductException(ResultEnum.PRODUCT_NOT_EXIST);
 //            }
 
-           // ProductInfo productInfo = productInfoOptional.get();
+            // ProductInfo productInfo = productInfoOptional.get();
             //判断库存够不够
             Integer result = productInfo.getProductStock() - decreaseStockInput.getProductQuantity();
             if (result < 0){
@@ -64,7 +81,9 @@ public class ProductServiceImpl implements ProductService {
 
             productInfo.setProductStock(result);
             productInfoRepository.save(productInfo);
+            productInfoList.add(productInfo);
         }
+        return productInfoList;
     }
 
 
