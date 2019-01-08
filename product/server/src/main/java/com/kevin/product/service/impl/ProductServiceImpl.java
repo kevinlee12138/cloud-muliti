@@ -60,6 +60,7 @@ public class ProductServiceImpl implements ProductService {
                     BeanUtils.copyProperties(e,output);
                     return output;
                 }).collect(Collectors.toList());
+        //发送消息 
         amqpTemplate.convertAndSend("productInfo","decreaseProduct", JsonUtil.toJson(productInfoOutputs));
     }
     @Transactional
