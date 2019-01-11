@@ -10,11 +10,16 @@ import com.kevin.product.dataObject.ProductInfo;
 import com.kevin.product.dto.DecreaseStockInput;
 import com.kevin.product.service.CategoryService;
 import com.kevin.product.service.ProductService;
+import com.kevin.product.utils.CookieUtil;
 import com.kevin.product.utils.ResultVOUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +31,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/product")
+@Slf4j
 public class ProductController {
 
     @Autowired
@@ -41,7 +47,12 @@ public class ProductController {
      * 4. 构造数据
      */
     @GetMapping("/list")
-    public ResultVO<ProductVO> list() {
+    public ResultVO<ProductVO> list(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = CookieUtil.get(request,"openid");
+        if (cookie != null){
+            log.info("Cookie:{}", CookieUtil.get(request,"openid").getValue());
+        }
+
         //1. 查询所有在架的商品
         List<ProductInfo> productInfoList = productService.findUpAll();
 
@@ -71,7 +82,7 @@ public class ProductController {
             productVO.setProductInfoVOList(productInfoVOList);
             productVOList.add(productVO);
         }
-
+        CookieUtil.set(response, "openid", "123", 100000000);
         return ResultVOUtil.success(productVOList);
     }
 
