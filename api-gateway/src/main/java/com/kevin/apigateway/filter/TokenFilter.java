@@ -41,8 +41,8 @@ public class TokenFilter extends ZuulFilter {
         //Cookie cookie = CookieUtil.get(request,"token");
         String token = request.getParameter("token");
         if (StringUtils.isEmpty(token)){
-            requestContext.setSendZuulResponse(false);
-            requestContext.setResponseStatusCode(HttpStatus.SC_UNAUTHORIZED);
+//            requestContext.setSendZuulResponse(false);
+//            requestContext.setResponseStatusCode(HttpStatus.SC_UNAUTHORIZED);
         }
         return null;
     }
