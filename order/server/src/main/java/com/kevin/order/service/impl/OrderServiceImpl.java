@@ -7,6 +7,8 @@ import com.kevin.order.dataobject.OrderMaster;
 import com.kevin.order.dto.OrderDTO;
 import com.kevin.order.enums.OrderStatusEnum;
 import com.kevin.order.enums.PayStatusEnum;
+import com.kevin.order.enums.ResultEnum;
+import com.kevin.order.exception.OrderException;
 import com.kevin.order.repository.OrderDetailRepository;
 import com.kevin.order.repository.OrderMasterRepository;
 import com.kevin.order.service.OrderService;
@@ -17,6 +19,7 @@ import com.kevin.product.common.ProductInfoOutput;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -76,6 +79,34 @@ public class OrderServiceImpl implements OrderService {
         orderMaster.setPayStatus(PayStatusEnum.WAIT.getCode());
 
         orderMasterRepository.save(orderMaster);
+        return orderDTO;
+    }
+
+    @Override
+    public OrderDTO finish(String orderId) {
+        // 1. 查询订单
+        OrderMaster orderMaster = orderMasterRepository.findOne(orderId);
+//        if(!optionalOrderMaster.isPresent()){
+//            throw new OrderException(ResultEnum.ORDER_NOT_EXIST);
+//        }
+//        // 2. 判断订单状态
+//        OrderMaster orderMaster = optionalOrderMaster.get();
+        if(OrderStatusEnum.NEW.getCode() != orderMaster.getOrderStatus()){
+            throw new OrderException(ResultEnum.ORDER_STATUS_ERROR);
+        }
+        // 3. 修改订单为完结状态
+        orderMaster.setOrderStatus(OrderStatusEnum.FINISHED.getCode());
+        orderMasterRepository.save(orderMaster);
+
+        // 4. 查询订单详情
+        List<OrderDetail> orderDetailList = orderDetailRepository.findByOrderId(orderMaster.getOrderId());
+        if(CollectionUtils.isEmpty(orderDetailList)){
+            throw new OrderException(ResultEnum.ORDER_DETAIL_NOT_EXIST);
+        }
+        OrderDTO orderDTO = new OrderDTO();
+        BeanUtils.copyProperties(orderMaster , orderDTO);
+        orderDTO.setOrderDetailList(orderDetailList);
+
         return orderDTO;
     }
 }

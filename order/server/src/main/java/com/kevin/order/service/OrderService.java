@@ -15,4 +15,6 @@ public interface OrderService {
      * @return
      */
     OrderDTO create(OrderDTO orderDTO);
+
+    OrderDTO finish(String orderId);
 }
