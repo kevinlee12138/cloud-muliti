@@ -2,6 +2,7 @@ package com.kevin.order.controller;
 
 import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +15,9 @@ import java.util.Arrays;
 public class HystrixController {
 
    // @HystrixCommand(fallbackMethod = "fallBack")
-    @HystrixCommand
+    @HystrixCommand(commandProperties = {
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds",value = "3000")
+    })
     @GetMapping("/getProductInfoList")
     public String getProductInfoList(){
         RestTemplate restTemplate = new RestTemplate();
